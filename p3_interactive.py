@@ -6,33 +6,39 @@ import Tkinter
 
 import p3_pathfinder
 
-if len(sys.argv) != 4:
-  print "usage: %s map.gif map.mesh.pickle subsample_factor" % sys.argv[0]
-  sys.exit(-1)
-
-_, MAP_FILENAME, MESH_FILENAME, SUBSAMPLE = sys.argv
-SUBSAMPLE = int(SUBSAMPLE)
-
-with open(MESH_FILENAME, 'rb') as f:
-  mesh = pickle.load(f)
-
-master = Tkinter.Tk()
-
-big_image = Tkinter.PhotoImage(file=MAP_FILENAME)
-small_image = big_image.subsample(SUBSAMPLE,SUBSAMPLE)
-BIG_WIDTH, BIG_HEIGHT = big_image.width(), big_image.height()
-SMALL_WIDTH, SMALL_HEIGHT = small_image.width(), small_image.height()
-
-canvas = Tkinter.Canvas(master, width=SMALL_WIDTH, height=SMALL_HEIGHT)
-canvas.pack()
-
-def shrink(values):
-  return [v/SUBSAMPLE for v in values]
-
 source_point = None
 destination_point = None
 visited_boxes = []
 path = []
+
+def initialize(map_file, mesh_file, sub):
+  # Messy list of globals, quickest and dirtiest refactor for wrapping this thing in a capable CLI
+  global MAP_FILENAME, MESH_FILENAME, SUBSAMPLE, master, small_image, canvas, mesh
+  MAP_FILENAME = map_file
+  MESH_FILENAME = mesh_file
+  SUBSAMPLE = sub
+  SUBSAMPLE = int(SUBSAMPLE)
+
+  with open(MESH_FILENAME, 'rb') as f:
+    mesh = pickle.load(f)
+
+  master = Tkinter.Tk()
+
+  big_image = Tkinter.PhotoImage(file=MAP_FILENAME)
+  small_image = big_image.subsample(SUBSAMPLE,SUBSAMPLE)
+  BIG_WIDTH, BIG_HEIGHT = big_image.width(), big_image.height()
+  SMALL_WIDTH, SMALL_HEIGHT = small_image.width(), small_image.height()
+
+  canvas = Tkinter.Canvas(master, width=SMALL_WIDTH, height=SMALL_HEIGHT)
+  canvas.pack()
+
+  canvas.bind('<Button-1>', on_click)
+
+  redraw()
+  master.mainloop()
+
+def shrink(values):
+  return [v/SUBSAMPLE for v in values]
 
 def redraw():
 
@@ -78,6 +84,7 @@ def on_click(event):
 
     try:
       path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh) 
+      print path
     except:
       destination_point = None
       traceback.print_exc()
@@ -85,7 +92,12 @@ def on_click(event):
 
   redraw()
 
-canvas.bind('<Button-1>', on_click)
+# Initialize the GUI from command line args if this is the main module
+if __name__ == '__main__':
+  if len(sys.argv) != 4:
+    print "usage: %s map.gif map.mesh.pickle subsample_factor" % sys.argv[0]
+    sys.exit(-1)
 
-redraw()
-master.mainloop()
+  _, map_file, mesh_file, sub = sys.argv
+  initialize(map_file, mesh_file, sub)
+
