@@ -10,6 +10,12 @@ def point_in_box(point, box):
 	# (x1<=px<=x2 or x2<=px<=x1) and (y1<=py<=y2 or y2<=py<=y1)
 	return (dx1*dx2 <= 0 and dy1*dy2 <= 0)
 
+# Helper function to return the box for a given point
+def box_from_point(point, mesh):
+	for box in mesh['boxes']:
+		if point_in_box(point, box):
+			return box
+
 
 def find_path(source_point, dest_point, mesh):
 	# A list of points used to draw the path found
@@ -19,10 +25,7 @@ def find_path(source_point, dest_point, mesh):
 	# A list of boxes visited in the nav mesh
 	visited_nodes = []
 	# Show the source and destination box
-	for box in mesh['boxes']:
-		if point_in_box(source_point, box):
-			visited_nodes.append(box)
-		elif point_in_box(dest_point, box):
-			visited_nodes.append(box)
+	visited_nodes.append(box_from_point(source_point, mesh))
+	visited_nodes.append(box_from_point(dest_point, mesh))
 	return (path, visited_nodes)
 
