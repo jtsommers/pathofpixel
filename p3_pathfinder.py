@@ -45,7 +45,7 @@ def find_path(source_point, dest_point, mesh):
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
 
-	return astar(source_point, dest_point, mesh)
+	return bistar(source_point, dest_point, mesh)
 
 def dist_to(curr_point, dest_point):
 	from math import sqrt
@@ -91,6 +91,7 @@ def astar(source_point, dest_point, mesh):
 				visited.append(adjacent_box)
 
 	if goal_found:
+		print "Num visits: ", len(visited)
 		# Build the line segments
 		path = []
 		boxPath = []
@@ -108,6 +109,100 @@ def astar(source_point, dest_point, mesh):
 				path.append((p1, p2))
 			prevBox = box
 		path.append((p2, dest_point))
+		return (path, visited)
+	else:
+		print "No path!"
+		return ([], [])
+
+def bistar(source_point, dest_point, mesh):
+	frontier = Q.PriorityQueue()
+	source = box_from_point(source_point, mesh)
+	dest = box_from_point(dest_point, mesh)
+
+	# Initialize previous references to none (break out of path recreation)
+	prev = {}
+	prev["source"] = {}
+	prev["source"][source] = None
+	prev["dest"] = {}
+	prev["dest"][dest] = None
+
+	# Map the goals to their target points
+	target = {}
+	target["source"] = dest_point
+	target["dest"] = source_point
+
+	# Reverse the goal
+	invert = {"source":"dest", "dest":"source"}
+
+	# Initialize the cost so far
+	cost_so_far = {}
+	cost_so_far[source] = 0
+	cost_so_far[dest] = 0
+
+	# Actual points list
+	detail_points = {}
+	detail_points[source] = source_point
+	detail_points[dest] = dest_point
+
+	frontier.put((0, source, "source"))
+	frontier.put((0, dest, "dest"))
+	visited = [source, dest]
+	goal_found = False
+	middle = None
+
+	while not frontier.empty():
+		priority, current, start = frontier.get()
+		goal = invert[start]
+		if current in prev[goal]:
+			print "Goal found in the middle at node: ", current
+			goal_found = True
+			middle = current
+			break
+
+		for adjacent_box in mesh["adj"][current]:
+			curr_point = detail_points[current]
+
+			next_point = nearest_point_in_box(curr_point, adjacent_box)
+			new_cost = cost_so_far[current] + dist_to(curr_point, next_point)		
+			if adjacent_box not in cost_so_far or new_cost < cost_so_far[adjacent_box]:
+				# Update the path
+				cost_so_far[adjacent_box] = new_cost
+				prev[start][adjacent_box] = current
+				priority = new_cost + dist_to(next_point, target[start])
+				frontier.put((priority, adjacent_box, start))
+				detail_points[adjacent_box] = next_point
+				visited.append(adjacent_box)
+
+	if goal_found:
+		print "Num visits: ", len(visited)
+		# Build the line segments
+		path = []
+
+		boxPath = []
+		current = prev["source"][middle]
+		# Build the box path back toward the source
+		while current:
+			boxPath.append(current)
+			current = prev["source"][current]
+		# Reverse the box path to put it in order
+		boxPath.reverse()
+		# Append the box path from middle to destination
+		current = middle
+		while current:
+			boxPath.append(current)
+			current = prev["dest"][current]
+
+		# Create the path
+		prevBox = None
+		p2 = source_point
+		for box in boxPath:
+			if prevBox:
+				p1 = detail_points[prevBox]
+				p2 = detail_points[box]
+				path.append((p1, p2))
+			prevBox = box
+		path.append((p2, dest_point))
+
 		return (path, visited)
 	else:
 		print "No path!"
