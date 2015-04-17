@@ -66,8 +66,9 @@ def astar(source_point, dest_point, mesh):
 	detail_points[source] = source_point
 	frontier.put((0, source))
 	visited = []
+	goal_found = False
 
-	while frontier:
+	while not frontier.empty():
 		priority, current = frontier.get()
 		if current == dest:
 			print "Goal found"
@@ -93,7 +94,6 @@ def astar(source_point, dest_point, mesh):
 		# Build the line segments
 		path = []
 		boxPath = []
-		current = dest
 		while current:
 			boxPath.append(current)
 			current = previous[current]
