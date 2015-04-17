@@ -58,9 +58,8 @@ def astar(source_point, dest_point, mesh):
 	frontier = Q.PriorityQueue()
 	source = box_from_point(source_point, mesh)
 	dest = box_from_point(dest_point, mesh)
-	boxPaths = {}
-	boxPaths[source] = [source]
-	came_from = {}
+	previous = {}
+	previous[source] = None
 	cost_so_far = {}
 	cost_so_far[source] = 0
 	detail_points = {}
@@ -84,9 +83,7 @@ def astar(source_point, dest_point, mesh):
 				# Update the path
 				#detail_points[adjacent_box] = nearest_point_in_box()
 				cost_so_far[adjacent_box] = new_cost
-				boxPath = list(boxPaths[current])
-				boxPath.append(adjacent_box)
-				boxPaths[adjacent_box] = boxPath
+				previous[adjacent_box] = current
 				priority = new_cost + dist_to(next_point, dest_point)
 				frontier.put((priority, adjacent_box))
 				detail_points[adjacent_box] = next_point
@@ -95,7 +92,13 @@ def astar(source_point, dest_point, mesh):
 	if goal_found:
 		# Build the line segments
 		path = []
-		boxPath = boxPaths[dest]
+		boxPath = []
+		current = dest
+		while current:
+			boxPath.append(current)
+			current = previous[current]
+		# Reverse to put the path in order from start to finish
+		boxPath.reverse()
 		prevBox = None
 		p2 = source_point
 		for box in boxPath:
