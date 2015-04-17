@@ -10,14 +10,16 @@ source_point = None
 destination_point = None
 visited_boxes = []
 path = []
+algorithm = "astar"
 
-def initialize(map_file, mesh_file, sub):
+def initialize(map_file, mesh_file, sub, alg="astar"):
   # Messy list of globals, quickest and dirtiest refactor for wrapping this thing in a capable CLI
-  global MAP_FILENAME, MESH_FILENAME, SUBSAMPLE, master, small_image, canvas, mesh
+  global MAP_FILENAME, MESH_FILENAME, SUBSAMPLE, master, small_image, canvas, mesh, algorithm
   MAP_FILENAME = map_file
   MESH_FILENAME = mesh_file
   SUBSAMPLE = sub
   SUBSAMPLE = int(SUBSAMPLE)
+  algorithm = alg
   with open(MESH_FILENAME, 'rb') as f:
 
     mesh = pickle.load(f)
@@ -83,7 +85,7 @@ def on_click(event):
     destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
 
     try:
-      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh) 
+      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm) 
     except:
       destination_point = None
       traceback.print_exc()
@@ -98,5 +100,5 @@ if __name__ == '__main__':
     sys.exit(-1)
 
   _, map_file, mesh_file, sub = sys.argv
-  initialize(map_file, mesh_file, sub)
+  initialize(map_file, mesh_file, sub, algorithm)
 

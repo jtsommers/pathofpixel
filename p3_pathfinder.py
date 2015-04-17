@@ -33,7 +33,7 @@ def nearest_point_in_box(point, box):
 	py = max(py, y1)
 	return (px, py)
 
-def find_path(source_point, dest_point, mesh):
+def find_path(source_point, dest_point, mesh, algorithm='astar'):
 	print "SRC_PT: ", source_point, " DST_PT: ", dest_point
 	# A list of points used to draw the path found
 	path = []
@@ -44,6 +44,13 @@ def find_path(source_point, dest_point, mesh):
 	# Show the source and destination box
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
+
+	try:
+		search = globals()[algorithm]
+		print "Searching using " + algorithm
+	except:
+		print "Search algorithm '", algorithm, "' not found"
+		return ([], [])
 
 	return bistar(source_point, dest_point, mesh)
 
