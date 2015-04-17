@@ -27,5 +27,32 @@ def find_path(source_point, dest_point, mesh):
 	# Show the source and destination box
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
+
+	visited_nodes = bfs(source_box, dest_box, mesh)
 	return (path, visited_nodes)
 
+def bfs(source_point, dest_point, mesh):
+	source = box_from_point(source_point, mesh)
+	dest = box_from_point(dest_point, mesh)
+	queue = [source]
+	visited = []
+	paths = 
+	goal_found = False
+	while queue:
+		node = queue.pop(0)
+		visited.append(node)
+
+		if node == dest:
+			print "Goal found"
+			goal_found = True
+			break
+
+		for adjacent_box in mesh["adj"][node]:
+			if adjacent_box not in visited and adjacent_box not in queue:
+				queue.append(adjacent_box)
+
+	if goal_found is False:
+		print "No path!"
+		return []
+	else:
+		return visited

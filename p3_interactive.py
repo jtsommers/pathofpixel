@@ -18,8 +18,8 @@ def initialize(map_file, mesh_file, sub):
   MESH_FILENAME = mesh_file
   SUBSAMPLE = sub
   SUBSAMPLE = int(SUBSAMPLE)
-
   with open(MESH_FILENAME, 'rb') as f:
+
     mesh = pickle.load(f)
 
   master = Tkinter.Tk()
