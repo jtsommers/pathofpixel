@@ -1,3 +1,8 @@
+try:
+    import Queue as Q  # ver. < 3.0
+except ImportError:
+    import queue as Q
+
 # Helper function to determine if a point is cointained within a box of the mesh
 def point_in_box(point, box):
 	x1, x2, y1, y2 = box
@@ -29,6 +34,7 @@ def nearest_point_in_box(point, box):
 	return (px, py)
 
 def find_path(source_point, dest_point, mesh):
+	print "SRC_PT: ", source_point, " DST_PT: ", dest_point
 	# A list of points used to draw the path found
 	path = []
 	# Just draw the straight line path for testing
@@ -39,7 +45,70 @@ def find_path(source_point, dest_point, mesh):
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
 
-	return bfs(source_point, dest_point, mesh)
+	return astar(source_point, dest_point, mesh)
+
+def dist_to(curr_point, dest_point):
+	from math import sqrt
+
+	dx = curr_point[0] - dest_point[0]
+	dy = curr_point[1] - dest_point[1]
+	return sqrt(dx**2 + dy**2)
+
+def astar(source_point, dest_point, mesh):
+	frontier = Q.PriorityQueue()
+	source = box_from_point(source_point, mesh)
+	dest = box_from_point(dest_point, mesh)
+	boxPaths = {}
+	boxPaths[source] = [source]
+	came_from = {}
+	cost_so_far = {}
+	cost_so_far[source] = 0
+	detail_points = {}
+	detail_points[source] = source_point
+	frontier.put((0, source))
+	visited = []
+
+	while frontier:
+		priority, current = frontier.get()
+		if current == dest:
+			print "Goal found"
+			goal_found = True
+			break
+
+		for adjacent_box in mesh["adj"][current]:
+			curr_point = detail_points[current]
+
+			next_point = nearest_point_in_box(curr_point, adjacent_box)
+			new_cost = cost_so_far[current] + dist_to(curr_point, next_point)		
+			if adjacent_box not in cost_so_far or new_cost < cost_so_far[adjacent_box]:
+				# Update the path
+				#detail_points[adjacent_box] = nearest_point_in_box()
+				cost_so_far[adjacent_box] = new_cost
+				boxPath = list(boxPaths[current])
+				boxPath.append(adjacent_box)
+				boxPaths[adjacent_box] = boxPath
+				priority = new_cost + dist_to(next_point, dest_point)
+				frontier.put((priority, adjacent_box))
+				detail_points[adjacent_box] = next_point
+				visited.append(adjacent_box)
+
+	if goal_found:
+		# Build the line segments
+		path = []
+		boxPath = boxPaths[dest]
+		prevBox = None
+		p2 = source_point
+		for box in boxPath:
+			if prevBox:
+				p1 = detail_points[prevBox]
+				p2 = detail_points[box]
+				path.append((p1, p2))
+			prevBox = box
+		path.append((p2, dest_point))
+		return (path, visited)
+	else:
+		print "No path!"
+		return ([], [])
 
 def bfs(source_point, dest_point, mesh):
 	source = box_from_point(source_point, mesh)
