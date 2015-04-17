@@ -16,6 +16,17 @@ def box_from_point(point, mesh):
 		if point_in_box(point, box):
 			return box
 
+# Constrain a point to a box
+def nearest_point_in_box(point, box):
+	px, py = point
+	x1, x2, y1, y2 = box
+	# Constrain to top right
+	px = min(px, x2)
+	py = min(py, y2)
+	# Constrain to bottom left
+	px = max(px, x1)
+	py = max(py, y2)
+	return (px, py)
 
 def find_path(source_point, dest_point, mesh):
 	# A list of points used to draw the path found
