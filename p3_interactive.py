@@ -84,7 +84,6 @@ def on_click(event):
 
     try:
       path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh) 
-      print path
     except:
       destination_point = None
       traceback.print_exc()

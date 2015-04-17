@@ -39,7 +39,7 @@ def find_path(source_point, dest_point, mesh):
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
 
-	visited_nodes = bfs(source_box, dest_box, mesh)
+	visited_nodes = bfs(source_point, dest_point, mesh)
 	return (path, visited_nodes)
 
 def bfs(source_point, dest_point, mesh):
@@ -47,7 +47,6 @@ def bfs(source_point, dest_point, mesh):
 	dest = box_from_point(dest_point, mesh)
 	queue = [source]
 	visited = []
-	paths = 
 	goal_found = False
 	while queue:
 		node = queue.pop(0)
