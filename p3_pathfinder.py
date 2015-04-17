@@ -65,7 +65,7 @@ def astar(source_point, dest_point, mesh):
 	detail_points = {}
 	detail_points[source] = source_point
 	frontier.put((0, source))
-	visited = []
+	visited = [source]
 	goal_found = False
 
 	while not frontier.empty():
