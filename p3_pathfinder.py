@@ -25,7 +25,7 @@ def nearest_point_in_box(point, box):
 	py = min(py, y2)
 	# Constrain to bottom left
 	px = max(px, x1)
-	py = max(py, y2)
+	py = max(py, y1)
 	return (px, py)
 
 def find_path(source_point, dest_point, mesh):
@@ -39,14 +39,19 @@ def find_path(source_point, dest_point, mesh):
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
 
-	visited_nodes = bfs(source_point, dest_point, mesh)
-	return (path, visited_nodes)
+	return bfs(source_point, dest_point, mesh)
 
 def bfs(source_point, dest_point, mesh):
 	source = box_from_point(source_point, mesh)
 	dest = box_from_point(dest_point, mesh)
 	queue = [source]
 	visited = []
+	# Save the path information to each box
+	boxPaths = {}
+	boxPaths[source] = [source]
+	# Save the point at which we enter every box
+	detail_points = {}
+	detail_points[source] = source_point
 	goal_found = False
 	while queue:
 		node = queue.pop(0)
@@ -59,10 +64,31 @@ def bfs(source_point, dest_point, mesh):
 
 		for adjacent_box in mesh["adj"][node]:
 			if adjacent_box not in visited and adjacent_box not in queue:
+				# Update the path
+				boxPath = list(boxPaths[node])
+				boxPath.append(adjacent_box)
+				boxPaths[adjacent_box] = boxPath
+
+				# Get the point at which to enter the box
+				detail_points[adjacent_box] = nearest_point_in_box(detail_points[node], adjacent_box)
+
+				# Add box to queue
 				queue.append(adjacent_box)
 
-	if goal_found is False:
-		print "No path!"
-		return []
+	if goal_found:
+		# Build the line segments
+		path = []
+		boxPath = boxPaths[dest]
+		prevBox = None
+		p2 = source_point
+		for box in boxPath:
+			if prevBox:
+				p1 = detail_points[prevBox]
+				p2 = detail_points[box]
+				path.append((p1, p2))
+			prevBox = box
+		path.append((p2, dest_point))
+		return (path, visited)
 	else:
-		return visited
+		print "No path!"
+		return ([], [])
