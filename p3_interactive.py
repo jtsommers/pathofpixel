@@ -8,7 +8,7 @@ import p3_pathfinder
 
 source_point = None
 destination_point = None
-visited_boxes = []
+visited_boxes = [[]]
 path = []
 algorithm = "astar"
 
@@ -47,9 +47,13 @@ def redraw():
   canvas.delete(Tkinter.ALL)
   canvas.create_image((0,0), anchor=Tkinter.NW, image=small_image)
 
-  for box in visited_boxes:
+  for box in visited_boxes[0]:
     x1,x2,y1,y2 = shrink(box)
     canvas.create_rectangle(y1,x1,y2,x2,outline='pink')
+  if len(visited_boxes) > 1:
+    for box in visited_boxes[1]:
+      x1,x2,y1,y2 = shrink(box)
+      canvas.create_rectangle(y1,x1,y2,x2,outline='blue')
 
   for segment in path:
     x1,y1 = shrink(segment[0])

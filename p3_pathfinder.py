@@ -116,7 +116,7 @@ def astar(source_point, dest_point, mesh):
 				path.append((p1, p2))
 			prevBox = box
 		path.append((p2, dest_point))
-		return (path, visited)
+		return (path, [visited])
 	else:
 		print "No path!"
 		return ([], [])
@@ -154,6 +154,8 @@ def bistar(source_point, dest_point, mesh):
 	frontier.put((0, source, "source"))
 	frontier.put((0, dest, "dest"))
 	visited = [source, dest]
+	visited[0] = [source]
+	visited[1] = [dest]
 	goal_found = False
 	middle = None
 
@@ -178,10 +180,14 @@ def bistar(source_point, dest_point, mesh):
 				priority = new_cost + dist_to(next_point, target[start])
 				frontier.put((priority, adjacent_box, start))
 				detail_points[adjacent_box] = next_point
-				visited.append(adjacent_box)
+				if start == "source":
+					visited[0].append(adjacent_box)
+				else:
+					visited[1].append(adjacent_box)
 
 	if goal_found:
-		print "Num visits: ", len(visited)
+		print "Num visits(src): ", len(visited[0])
+		print "Num visits(dst): ", len(visited[1])
 		# Build the line segments
 		path = []
 
@@ -262,7 +268,7 @@ def bfs(source_point, dest_point, mesh):
 				path.append((p1, p2))
 			prevBox = box
 		path.append((p2, dest_point))
-		return (path, visited)
+		return (path, [visited])
 	else:
 		print "No path!"
-		return ([], [])
+		return ([], [[]])
