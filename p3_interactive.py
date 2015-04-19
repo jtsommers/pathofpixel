@@ -77,7 +77,7 @@ def on_click(event):
 
     source_point = None
     destination_point = None
-    visited_boxes = []
+    visited_boxes = [[]]
     path = []
 
   elif not source_point:

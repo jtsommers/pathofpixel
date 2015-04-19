@@ -119,7 +119,7 @@ def astar(source_point, dest_point, mesh):
 		return (path, [visited])
 	else:
 		print "No path!"
-		return ([], [])
+		return ([], [[]])
 
 def bistar(source_point, dest_point, mesh):
 	frontier = Q.PriorityQueue()
@@ -219,7 +219,7 @@ def bistar(source_point, dest_point, mesh):
 		return (path, visited)
 	else:
 		print "No path!"
-		return ([], [])
+		return ([], [[]])
 
 def bfs(source_point, dest_point, mesh):
 	source = box_from_point(source_point, mesh)
