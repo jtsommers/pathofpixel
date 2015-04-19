@@ -35,6 +35,7 @@ def initialize(map_file, mesh_file, sub, alg="astar"):
   canvas.pack()
 
   canvas.bind('<Button-1>', on_click)
+  canvas.bind('<Button-2>', on_right_click)
 
   redraw()
   master.mainloop()
@@ -96,6 +97,21 @@ def on_click(event):
 
 
   redraw()
+
+def on_right_click(event):
+  global source_point, destination_point, visited_boxes, path, algorithm
+  swap = {"astar":"bistar", "bistar":"astar"}
+
+  if source_point and destination_point:
+    # Default to swapping out for A* if not using one of the two A* variants for comparison already
+    algorithm = swap.get(algorithm, "astar")
+    try:
+      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm)
+      redraw()
+    except:
+      destination_point = None
+      traceback.print_exc()
+
 
 # Initialize the GUI from command line args if this is the main module
 if __name__ == '__main__':

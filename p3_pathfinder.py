@@ -34,7 +34,6 @@ def nearest_point_in_box(point, box):
 	return (px, py)
 
 def find_path(source_point, dest_point, mesh, algorithm='astar'):
-	print "SRC_PT: ", source_point, " DST_PT: ", dest_point
 	# A list of points used to draw the path found
 	path = []
 	# Just draw the straight line path for testing
@@ -52,7 +51,7 @@ def find_path(source_point, dest_point, mesh, algorithm='astar'):
 		print "Search algorithm '", algorithm, "' not found"
 		return ([], [])
 
-	return bistar(source_point, dest_point, mesh)
+	return search(source_point, dest_point, mesh)
 
 def dist_to(curr_point, dest_point):
 	from math import sqrt
@@ -60,6 +59,9 @@ def dist_to(curr_point, dest_point):
 	dx = curr_point[0] - dest_point[0]
 	dy = curr_point[1] - dest_point[1]
 	return sqrt(dx**2 + dy**2)
+
+def heuristic(curr_point, dest_point):
+	return dist_to(curr_point, dest_point)
 
 def astar(source_point, dest_point, mesh):
 	frontier = Q.PriorityQueue()
@@ -92,7 +94,7 @@ def astar(source_point, dest_point, mesh):
 				#detail_points[adjacent_box] = nearest_point_in_box()
 				cost_so_far[adjacent_box] = new_cost
 				previous[adjacent_box] = current
-				priority = new_cost + dist_to(next_point, dest_point)
+				priority = new_cost + heuristic(next_point, dest_point)
 				frontier.put((priority, adjacent_box))
 				detail_points[adjacent_box] = next_point
 				visited.append(adjacent_box)
@@ -177,7 +179,7 @@ def bistar(source_point, dest_point, mesh):
 				# Update the path
 				cost_so_far[adjacent_box] = new_cost
 				prev[start][adjacent_box] = current
-				priority = new_cost + dist_to(next_point, target[start])
+				priority = new_cost + heuristic(next_point, target[start])
 				frontier.put((priority, adjacent_box, start))
 				detail_points[adjacent_box] = next_point
 				if start == "source":
@@ -188,6 +190,7 @@ def bistar(source_point, dest_point, mesh):
 	if goal_found:
 		print "Num visits(src): ", len(visited[0])
 		print "Num visits(dst): ", len(visited[1])
+		print "Total: ", len(visited[0]) + len(visited[1])
 		# Build the line segments
 		path = []
 
