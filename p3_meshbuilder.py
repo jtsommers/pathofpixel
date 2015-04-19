@@ -66,18 +66,7 @@ def build_mesh(image, min_feature_size):
                 f, s = first_touches[0], second_touches[0]
                 rf, rs = rank(f), rank(s)
 
-                if rf < rs:
-
-                    my_boxes.append(first_touches.pop(0))
-                    if rf[1] >= rs[0]:
-                        my_edges.append( (f,s) )
-
-                elif rf > rs:
-
-                    my_boxes.append(second_touches.pop(0))
-                    if rf[0] <= rs[1]:
-                        my_edges.append( (f,s) )
-                else:
+                if rf == rs:
 
                     first_touches.pop(0)
                     second_touches.pop(0)
@@ -85,6 +74,24 @@ def build_mesh(image, min_feature_size):
                     first_merges[f] = merged
                     second_merges[s] = merged
                     my_boxes.append(merged)
+
+                elif rf[1] < rs[1]:
+
+                  my_boxes.append(first_touches.pop(0))
+                  if rf[1] >= rs[0]:
+                    my_edges.append( (f,s) )
+
+                elif rf[1] > rs[1]:
+
+                  my_boxes.append(second_touches.pop(0))
+                  if rf[0] <= rs[1]:
+                    my_edges.append( (f,s) )
+
+                else:
+
+                  my_boxes.append(first_touches.pop(0))
+                  my_boxes.append(second_touches.pop(0))
+                  my_edges.append( (f,s) )
 
             my_boxes.extend(first_touches)
             my_boxes.extend(second_touches)
@@ -106,7 +113,7 @@ def build_mesh(image, min_feature_size):
         adj[a].append(b)
         adj[b].append(a)
 
-    mesh = {'boxes': boxes, 'adj': dict(adj)}
+    mesh = {'boxes': adj.keys(), 'adj': dict(adj)}
     
     return mesh
 
