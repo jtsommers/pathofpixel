@@ -3,6 +3,7 @@ import random
 import pickle
 import traceback
 import Tkinter
+from Tkinter import *
 
 import p3_pathfinder
 
@@ -11,10 +12,11 @@ destination_point = None
 visited_boxes = [[]]
 path = []
 algorithm = "astar"
+statusText = None
 
 def initialize(map_file, mesh_file, sub, alg="astar"):
   # Messy list of globals, quickest and dirtiest refactor for wrapping this thing in a capable CLI
-  global MAP_FILENAME, MESH_FILENAME, SUBSAMPLE, master, small_image, canvas, mesh, algorithm
+  global MAP_FILENAME, MESH_FILENAME, SUBSAMPLE, master, small_image, canvas, mesh, algorithm, statusText, label
   MAP_FILENAME = map_file
   MESH_FILENAME = mesh_file
   SUBSAMPLE = sub
@@ -31,14 +33,25 @@ def initialize(map_file, mesh_file, sub, alg="astar"):
   BIG_WIDTH, BIG_HEIGHT = big_image.width(), big_image.height()
   SMALL_WIDTH, SMALL_HEIGHT = small_image.width(), small_image.height()
 
+  statusText = StringVar(master)
+
   canvas = Tkinter.Canvas(master, width=SMALL_WIDTH, height=SMALL_HEIGHT)
   canvas.pack()
+  canvas.pack_propagate(0)
+
+  label = Label(canvas, textvariable=statusText)
 
   canvas.bind('<Button-1>', on_click)
   canvas.bind('<Button-2>', on_right_click)
 
   redraw()
   master.mainloop()
+
+def show_status(*args):
+  text = ''.join([str(arg) for arg in args])
+  global label, statusText
+  statusText.set(text)
+  label.pack(fill=X)
 
 def shrink(values):
   return [v/SUBSAMPLE for v in values]
@@ -47,6 +60,9 @@ def redraw():
 
   canvas.delete(Tkinter.ALL)
   canvas.create_image((0,0), anchor=Tkinter.NW, image=small_image)
+  
+  canvas.pack()
+  canvas.pack_propagate(0)
 
   for box in visited_boxes[0]:
     x1,x2,y1,y2 = shrink(box)
@@ -54,7 +70,7 @@ def redraw():
   if len(visited_boxes) > 1:
     for box in visited_boxes[1]:
       x1,x2,y1,y2 = shrink(box)
-      canvas.create_rectangle(y1,x1,y2,x2,outline='blue')
+      canvas.create_rectangle(y1,x1,y2,x2,outline='skyblue1')
 
   for segment in path:
     x1,y1 = shrink(segment[0])
@@ -80,6 +96,8 @@ def on_click(event):
     destination_point = None
     visited_boxes = [[]]
     path = []
+    show_status("")
+    label.pack()
 
   elif not source_point:
 
@@ -90,7 +108,7 @@ def on_click(event):
     destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
 
     try:
-      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm) 
+      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm, show_status) 
     except:
       destination_point = None
       traceback.print_exc()
@@ -106,7 +124,7 @@ def on_right_click(event):
     # Default to swapping out for A* if not using one of the two A* variants for comparison already
     algorithm = swap.get(algorithm, "astar")
     try:
-      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm)
+      path, visited_boxes = p3_pathfinder.find_path(source_point, destination_point, mesh, algorithm, show_status)
       redraw()
     except:
       destination_point = None

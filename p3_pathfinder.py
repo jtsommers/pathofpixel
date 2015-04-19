@@ -3,6 +3,9 @@ try:
 except ImportError:
     import queue as Q
 
+def log(*args):
+	print ''.join([str(arg) for arg in args])
+
 # Helper function to determine if a point is cointained within a box of the mesh
 def point_in_box(point, box):
 	x1, x2, y1, y2 = box
@@ -33,7 +36,8 @@ def nearest_point_in_box(point, box):
 	py = max(py, y1)
 	return (px, py)
 
-def find_path(source_point, dest_point, mesh, algorithm='astar'):
+def find_path(source_point, dest_point, mesh, algorithm='astar', statusFn=None):
+	global status
 	# A list of points used to draw the path found
 	path = []
 	# Just draw the straight line path for testing
@@ -43,6 +47,12 @@ def find_path(source_point, dest_point, mesh, algorithm='astar'):
 	# Show the source and destination box
 	visited_nodes.append(box_from_point(source_point, mesh))
 	visited_nodes.append(box_from_point(dest_point, mesh))
+
+	if statusFn: 
+		print "Setting status function"
+		status = statusFn
+	else:
+		status = log
 
 	try:
 		search = globals()[algorithm]
@@ -84,7 +94,7 @@ def astar(source_point, dest_point, mesh):
 			goal_found = True
 			break
 
-		for adjacent_box in mesh["adj"][current]:
+		for adjacent_box in mesh["adj"].get(current,[]):
 			curr_point = detail_points[current]
 
 			next_point = nearest_point_in_box(curr_point, adjacent_box)
@@ -100,7 +110,7 @@ def astar(source_point, dest_point, mesh):
 				visited.append(adjacent_box)
 
 	if goal_found:
-		print "Num visits: ", len(visited)
+		status("Num visits: ", len(visited))
 		# Build the line segments
 		path = []
 		boxPath = []
@@ -120,7 +130,7 @@ def astar(source_point, dest_point, mesh):
 		path.append((p2, dest_point))
 		return (path, [visited])
 	else:
-		print "No path!"
+		status("No path!")
 		return ([], [[]])
 
 def bistar(source_point, dest_point, mesh):
@@ -170,7 +180,7 @@ def bistar(source_point, dest_point, mesh):
 			middle = current
 			break
 
-		for adjacent_box in mesh["adj"][current]:
+		for adjacent_box in mesh["adj"].get(current,[]):
 			curr_point = detail_points[current]
 
 			next_point = nearest_point_in_box(curr_point, adjacent_box)
@@ -188,9 +198,8 @@ def bistar(source_point, dest_point, mesh):
 					visited[1].append(adjacent_box)
 
 	if goal_found:
-		print "Num visits(src): ", len(visited[0])
-		print "Num visits(dst): ", len(visited[1])
-		print "Total: ", len(visited[0]) + len(visited[1])
+		path_cost = cost_so_far[prev["source"][middle]] + cost_so_far[prev["dest"][middle]] + dist_to(detail_points[prev["source"][middle]], detail_points[prev["dest"][middle]])
+		status("Num visits: ", len(visited[0]) + len(visited[1]))
 		# Build the line segments
 		path = []
 
@@ -199,14 +208,14 @@ def bistar(source_point, dest_point, mesh):
 		# Build the box path back toward the source
 		while current:
 			boxPath.append(current)
-			current = prev["source"][current]
+			current = prev["source"].get(current,[])
 		# Reverse the box path to put it in order
 		boxPath.reverse()
 		# Append the box path from middle to destination
 		current = middle
 		while current:
 			boxPath.append(current)
-			current = prev["dest"][current]
+			current = prev["dest"].get(current,[])
 
 		# Create the path
 		prevBox = None
@@ -221,7 +230,7 @@ def bistar(source_point, dest_point, mesh):
 
 		return (path, visited)
 	else:
-		print "No path!"
+		status("No path!")
 		return ([], [[]])
 
 def bfs(source_point, dest_point, mesh):
@@ -273,5 +282,5 @@ def bfs(source_point, dest_point, mesh):
 		path.append((p2, dest_point))
 		return (path, [visited])
 	else:
-		print "No path!"
+		status("No path!")
 		return ([], [[]])
